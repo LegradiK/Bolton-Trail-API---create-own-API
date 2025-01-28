@@ -10,24 +10,24 @@ app = Flask(__name__)
 class Base(DeclarativeBase):
     pass
 # Connect to Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///trails.db'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
 
-# Cafe TABLE Configuration
-class Cafe(db.Model):
+# Cafe TABLE ConfigurationS
+class Trail(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     map_url: Mapped[str] = mapped_column(String(500), nullable=False)
-    img_url: Mapped[str] = mapped_column(String(500), nullable=False)
     location: Mapped[str] = mapped_column(String(250), nullable=False)
-    seats: Mapped[str] = mapped_column(String(250), nullable=False)
+    altitude: Mapped[int] = mapped_column(Integer, nullable=False)
+    route_map: Mapped[str] = mapped_column(String(250))
+    trail_distance: Mapped[int] = mapped_column(Integer, nullable=False)
+    home_distance: Mapped[int] = mapped_column(Integer, nullable=False)   
     has_toilet: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    has_wifi: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    has_sockets: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    can_take_calls: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    coffee_price: Mapped[str] = mapped_column(String(250), nullable=True)
+    has_parking_space: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    has_cafe: Mapped[bool] = mapped_column(Boolean, nullable=False) 
 
     def to_dict(self):
         dictionary = {}
@@ -53,26 +53,26 @@ def home():
 
 @app.route('/all', methods=['GET'])
 def get_all():
-    all_cafes = db.session.execute(db.select(Cafe)).scalars().all()
-    cafes = [cafe.to_dict() for cafe in all_cafes]
-    return jsonify(cafe=cafes)
+    all_trails = db.session.execute(db.select(Trail)).scalars().all()
+    trails = [trail.to_dict() for trail in all_trails]
+    return jsonify(trail=trails)
 
 @app.route('/search', methods=['GET'])
-def search_cafe():
+def search_trail():
     location = request.args.get('loc')
     if not location:
         return jsonify({"error": "Please provide a location parameter"})
-    searching_cafes = db.session.execute(db.select(Cafe).where(Cafe.location == location)).scalars().all()
-    if not searching_cafes:
+    searching_trails = db.session.execute(db.select(Trail).where(Trail.location == location)).scalars().all()
+    if not searching_trails:
         return jsonify({"error": f"No cafes found in {location}"})
-    searched_cafes = [cafe.to_dict() for cafe in searching_cafes]
-    return jsonify(cafe=searched_cafes)
+    searched_trails = [trail.to_dict() for trail in searching_trails]
+    return jsonify(cafe=searched_trails)
 
 @app.route('/random', methods=['GET'])
 def get_random_cafe():
-    all_cafes = db.session.execute(db.select(Cafe)).scalars().all()
-    random_cafe = random.choice(all_cafes)
-    return jsonify(cafe=random_cafe.to_dict())
+    all_trails = db.session.execute(db.select(Trail)).scalars().all()
+    random_trail = random.choice(all_trails)
+    return jsonify(cafe=random_trail.to_dict())
 
     # return jsonify(cafe={
     #         "id":random_cafe.id,
