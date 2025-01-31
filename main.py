@@ -51,6 +51,13 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
+@app.route('/delete/<int:trail_id>')
+def delete_trail(trail_id):
+    trail_data = db.get_or_404(Trail, trail_id)
+    db.session.delete(trail_data)
+    db.session.commit()
+    return jsonify(response={"success": f"Trail data {trail_id} has been successfully deleted."})
+
 @app.route('/update_data/<int:trail_id>', methods=["POST"])
 def update_trail_data(trail_id):
     trail = db.get_or_404(Trail, trail_id)
