@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean, Float
 import random
 
 app = Flask(__name__)
@@ -21,13 +21,13 @@ class Trail(db.Model):
     name: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     map_url: Mapped[str] = mapped_column(String(500), nullable=False)
     location: Mapped[str] = mapped_column(String(250), nullable=False)
-    altitude: Mapped[int] = mapped_column(Integer, nullable=False)
+    altitude: Mapped[int] = mapped_column(Integer)
     route_map: Mapped[str] = mapped_column(String(250))
-    trail_distance: Mapped[int] = mapped_column(Integer, nullable=False)
-    home_distance: Mapped[int] = mapped_column(Integer, nullable=False)   
-    has_toilet: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    has_parking_space: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    has_cafe: Mapped[bool] = mapped_column(Boolean, nullable=False) 
+    trail_distance: Mapped[int] = mapped_column(Float, nullable=False)
+    home_distance: Mapped[int] = mapped_column(Float)   
+    has_toilet: Mapped[bool] = mapped_column(Boolean)
+    has_parking_space: Mapped[bool] = mapped_column(Boolean)
+    has_cafe: Mapped[bool] = mapped_column(Boolean) 
 
     def to_dict(self):
         dictionary = {}
@@ -61,36 +61,64 @@ def delete_trail(trail_id):
 @app.route('/update_data/<int:trail_id>', methods=["POST"])
 def update_trail_data(trail_id):
     trail = db.get_or_404(Trail, trail_id)
-    new_data = request.get_json()
 
-    if not new_data:
-        return jsonify(response={"error": "No data provided"}), 400
-    
-    for key, value in new_data.items():
-        if hasattr(trail, key):
-            setattr(trail, key, value)
-    
+    name = request.form.get('name')
+    map_url = request.form.get('map_url')
+    location = request.form.get('location')
+    altitude = request.form.get('altitude')
+    route_map = request.form.get('route_map')
+    trail_distance = request.form.get('trail_distance')
+    home_distance = request.form.get('home_distance')
+    has_toilet = request.form.get('has_toilet')
+    has_parking_space = request.form.get('has_parking_space')
+    has_cafe = request.form.get('has_cafe')
+
+    # Update the trail object only if the form field is provided
+    if name:
+        trail.name = name
+    if map_url:
+        trail.map_url = map_url
+    if location:
+        trail.location = location
+    if altitude:
+        trail.altitude = altitude
+    if route_map:
+        trail.route_map = route_map
+    if trail_distance:
+        trail.trail_distance = trail_distance
+    if home_distance:
+        trail.home_distance = home_distance
+    if has_toilet:
+        trail.has_toilet = has_toilet
+    if has_parking_space:
+        trail.has_parking_space = has_parking_space
+    if has_cafe:
+        trail.has_cafe = has_cafe
+
     db.session.commit()
-    return jsonify(response={"success": f"trail {trail_id} updated successfully"})
+    return jsonify(response={"success": "Added a new trail data into the database."})
 
 
-@app.route('/add')
+@app.route('/add', methods=["POST"])
 def add_new_trail():
+    # Insert into database
     new_trail = Trail(
-        name = request.form.get("name"),
-        map_url = request.form.get("map_url"),
-        location = request.form.get("location"),
-        altitude = request.form.get("altitude"),
-        route_map = request.form.get("route_map"),
-        trail_distance = request.form.get("trail_distance"),
-        home_distance = request.form.get("home_distance"),
-        has_toilet = bool(request.form.get("has_toilet")),
-        has_parking_space = bool(request.form.get("has_parking_space")),
-        has_cafe = bool(request.form.get("has_cafe"))
+        name=request.form.get("name"),
+        map_url=request.form.get("map_url"),
+        location=request.form.get("location"),
+        altitude=request.form.get("altitude"),
+        route_map=request.form.get("route_map"),
+        trail_distance=request.form.get("trail_distance"),
+        home_distance=request.form.get("home_distance"),
+        has_toilet=bool(request.form.get("has_toilet")),
+        has_parking_space=bool(request.form.get("has_parking_space")),
+        has_cafe=bool(request.form.get("has_cafe"))
     )
+    print(new_trail)
     db.session.add(new_trail)
     db.session.commit()
     return jsonify(response={"success": "Added a new trail data into the database."})
+
 
 @app.route('/all', methods=['GET'])
 def get_all_trails():
