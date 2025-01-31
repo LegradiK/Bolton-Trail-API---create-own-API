@@ -51,8 +51,42 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
+@app.route('/update_data/<int:trail_id>', methods=["POST"])
+def update_trail_data(trail_id):
+    trail = db.get_or_404(Trail, trail_id)
+    new_data = request.get_json()
+
+    if not new_data:
+        return jsonify(response={"error": "No data provided"}), 400
+    
+    for key, value in new_data.items():
+        if hasattr(trail, key):
+            setattr(trail, key, value)
+    
+    db.session.commit()
+    return jsonify(response={"success": f"trail {trail_id} updated successfully"})
+
+
+@app.route('/add')
+def add_new_trail():
+    new_trail = Trail(
+        name = request.form.get("name"),
+        map_url = request.form.get("map_url"),
+        location = request.form.get("location"),
+        altitude = request.form.get("altitude"),
+        route_map = request.form.get("route_map"),
+        trail_distance = request.form.get("trail_distance"),
+        home_distance = request.form.get("home_distance"),
+        has_toilet = bool(request.form.get("has_toilet")),
+        has_parking_space = bool(request.form.get("has_parking_space")),
+        has_cafe = bool(request.form.get("has_cafe"))
+    )
+    db.session.add(new_trail)
+    db.session.commit()
+    return jsonify(response={"success": "Added a new trail data into the database."})
+
 @app.route('/all', methods=['GET'])
-def get_all():
+def get_all_trails():
     all_trails = db.session.execute(db.select(Trail)).scalars().all()
     trails = [trail.to_dict() for trail in all_trails]
     return jsonify(trail=trails)
@@ -69,7 +103,7 @@ def search_trail():
     return jsonify(cafe=searched_trails)
 
 @app.route('/random', methods=['GET'])
-def get_random_cafe():
+def get_random_trail():
     all_trails = db.session.execute(db.select(Trail)).scalars().all()
     random_trail = random.choice(all_trails)
     return jsonify(cafe=random_trail.to_dict())
