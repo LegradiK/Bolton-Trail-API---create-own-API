@@ -118,7 +118,7 @@ def update_trail_data(trail_id):
     if updated_fields:
         db.session.commit()
         db.session.remove()
-        print(updated_fields)
+        # print(updated_fields)
         return jsonify(response={
             "success": f"Updated a trail data in the database.",
             "trail_id": f"{trail_id}",
