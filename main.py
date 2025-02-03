@@ -51,7 +51,7 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
-@app.route('/delete/<int:trail_id>')
+@app.route('/delete/<int:trail_id>', methods=["DELETE"])
 def delete_trail(trail_id):
     trail_data = db.get_or_404(Trail, trail_id)
     db.session.delete(trail_data)
@@ -179,7 +179,6 @@ def get_random_trail():
     random_trail = random.choice(all_trails)
     return jsonify(trail=random_trail.to_dict())
 
-   
 
 if __name__ == '__main__':
     app.run(debug=True)
