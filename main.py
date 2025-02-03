@@ -135,14 +135,41 @@ def get_all_trails():
     trails = [trail.to_dict() for trail in all_trails]
     return jsonify(trail=trails)
 
-@app.route('/search', methods=['GET'])
-def search_trail():
+@app.route('/search_by_location', methods=['GET'])
+def search_trail_by_location():
     location = request.args.get('loc')
     if not location:
         return jsonify({"error": "Please provide a location parameter"})
     searching_trails = db.session.execute(db.select(Trail).where(Trail.location == location)).scalars().all()
     if not searching_trails:
         return jsonify({"error": f"No trails found in {location}"})
+    searched_trails = [trail.to_dict() for trail in searching_trails]
+    return jsonify(trail=searched_trails)
+
+@app.route('/search_by_distance', methods=['GET'])
+def search_trail_by_distance():
+    distance = int(request.args.get('distance'))
+    if not distance:
+        return jsonify({"error": "Please provide a distance parameter"})
+    try:
+        distance = int(distance)
+    except ValueError:
+        return jsonify({"error": "Invalid distance value. Please enter a number."}), 400
+
+    if distance <= 5:
+        distance_range = (0, 5)
+    elif distance <= 10:
+        distance_range = (6, 10)
+    elif distance <= 20:
+        distance_range = (11, 20)
+    elif distance <=30:
+        distance_range = (21, 30)
+    else:
+        distance_range = (31, 100)
+    
+    searching_trails = db.session.execute(db.select(Trail).where(Trail.trail_distance.between(*distance_range))).scalars().all()
+    if not searching_trails:
+        return jsonify({"error": f"No trails found within the range of {distance_range[0]} - {distance_range[1]} km distance"}), 404
     searched_trails = [trail.to_dict() for trail in searching_trails]
     return jsonify(trail=searched_trails)
 
