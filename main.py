@@ -54,6 +54,10 @@ def home():
 @app.route('/delete/<int:trail_id>', methods=["DELETE"])
 def delete_trail(trail_id):
     trail_data = db.get_or_404(Trail, trail_id)
+
+    if not trail_data:
+        return jsonify(response={"error":f"Trail with the trial_id {trail_id} not found."})
+
     db.session.delete(trail_data)
     db.session.commit()
 
@@ -65,6 +69,8 @@ def delete_trail(trail_id):
 def update_trail_data(trail_id):
     trail = db.get_or_404(Trail, trail_id)
 
+    updated_fields = {}
+
     name = request.form.get('name')
     map_url = request.form.get('map_url')
     location = request.form.get('location')
@@ -72,6 +78,7 @@ def update_trail_data(trail_id):
     route_map = request.form.get('route_map')
     trail_distance = request.form.get('trail_distance')
     home_distance = request.form.get('home_distance')
+    # Correctly handle boolean fields
     has_toilet = request.form.get('has_toilet')
     has_parking_space = request.form.get('has_parking_space')
     has_cafe = request.form.get('has_cafe')
@@ -79,30 +86,48 @@ def update_trail_data(trail_id):
     # Update the trail object only if the form field is provided
     if name:
         trail.name = name
+        updated_fields["name"] = name
     if map_url:
         trail.map_url = map_url
+        updated_fields["map_url"] = map_url
     if location:
         trail.location = location
+        updated_fields["location"] = location
     if altitude:
         trail.altitude = altitude
+        updated_fields["altitude"] = altitude
     if route_map:
         trail.route_map = route_map
+        updated_fields["route_map"] = route_map
     if trail_distance:
         trail.trail_distance = trail_distance
+        updated_fields["trail_distance"] = trail_distance
     if home_distance:
         trail.home_distance = home_distance
-    if has_toilet:
-        trail.has_toilet = has_toilet
-    if has_parking_space:
-        trail.has_parking_space = has_parking_space
-    if has_cafe:
-        trail.has_cafe = has_cafe
+        updated_fields["home_distance"] = home_distance
+    if has_toilet is not None:
+        trail.has_toilet = has_toilet == "true"
+        updated_fields["has_toilet"] =has_toilet
+    if has_parking_space is not None:
+        trail.has_parking_space = has_parking_space == "true"
+        updated_fields["has_parking_space"] = has_parking_space
+    if has_cafe is not None:
+        trail.has_cafe = has_cafe == "true"
+        updated_fields["has_cafe"] = has_cafe
 
-    db.session.commit()
+    if updated_fields:
+        db.session.commit()
+        db.session.remove()
+        print(updated_fields)
+        return jsonify(response={
+            "success": f"Updated a trail data in the database.",
+            "trail_id": f"{trail_id}",
+            "updated_fields":updated_fields
+        })
 
-    db.session.remove()
+    else:
+        return jsonify({"error": "No fields were updated"})
 
-    return jsonify(response={"success": "Added a new trail data into the database."})
 
 
 @app.route('/add', methods=["POST"])
