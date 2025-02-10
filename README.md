@@ -1,5 +1,12 @@
 # Bolton-Trail-API---create-own-API
 
+## **Instruction**
+
+1. source venv/bin/activate
+2. pip install -r requirements.txt if requirements aren't installed yet
+3. run: python3 main.py
+4. any requests can be done from Postman
+
 ## **Overview**
 
 Own project created from a Day 66 challenge of the 100 Days of Code Challenge
